@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Indicadores do IGR e TIR</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #f4f7fc;
+            color: #1a2332;
+            padding: 24px;
+            min-height: 100vh;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #e9ecf2;
+            border-radius: 8px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #a0b3c9;
+            border-radius: 8px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #7f96b3;
+        }
+        .container {
+            max-width: 1440px;
+            margin: 0 auto;
+        }
+        .header {
+            background: linear-gradient(135deg, #1b4a2e 0%, #2a7a4a 100%);
+            border-radius: 20px;
+            padding: 28px 36px;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+            box-shadow: 0 8px 32px rgba(27, 74, 46, 0.25);
+        }
+        .header h1 {
+            font-size: 26px;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: -0.3px;
+        }
+        .tabs {
+            display: flex;
+            gap: 6px;
+            background: #fff;
+            border-radius: 16px;
+            padding: 6px;
+            margin-bottom: 28px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            border: 1px solid #eef2f7;
+            flex-wrap: wrap;
+        }
+        .tab-btn {
+            flex: 1;
+            min-width: 130px;
+            padding: 12px 20px;
+            border: none;
+            background: transparent;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            color: #5a6e84;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-family: inherit;
+        }
+        .tab-btn:hover {
+            background: #e8f5ee;
+            color: #1a5a3a;
+        }
+        .tab-btn.active {
+            background: #1b4a2e;
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(27, 74, 46, 0.20);
+        }
+        .tab-btn .tab-icon {
+            font-size: 18px;
+            line-height: 1;
+        }
+
+        .panel {
+            display: none;
+            animation: fadeUp 0.3s ease;
+        }
+        .panel.active {
+            display: block;
+        }
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .insight-box {
+            background: #eaf7ed;
+            border-left: 5px solid #1b4a2e;
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #1a3a2a;
+            line-height: 1.5;
+        }
+        .insight-box strong {
+            color: #0d4a1a;
+        }
+
+        .table-card {
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+            border: 1px solid #eef2f7;
+            overflow: hidden;
+        }
+        .table-toolbar {
+            padding: 18px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 14px;
+            border-bottom: 1px solid #f0f4fa;
+            background: #fafcfe;
+        }
+        .table-toolbar .title-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .table-toolbar .title-group h2 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1b4a2e;
+        }
+        .table-toolbar .title-group .sub {
+            font-size: 13px;
+            color: #6b7d93;
+            font-weight: 400;
+        }
+        .table-toolbar .search-box {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .table-toolbar .search-box input {
+            padding: 8px 16px 8px 38px;
+            border: 1px solid #dce3ed;
+            border-radius: 40px;
+            font-size: 14px;
+            background: #fff;
+            width: 220px;
+            transition: all 0.2s ease;
+            font-family: inherit;
+            color: #1a2332;
+        }
+        .table-toolbar .search-box input::placeholder {
+            color: #9aadc2;
+        }
+        .table-toolbar .search-box input:focus {
+            outline: none;
+            border-color: #2e7d32;
+            box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.12);
+            width: 260px;
+        }
+        .table-toolbar .search-box .icon {
+            position: absolute;
+            left: 14px;
+            color: #9aadc2;
+            font-size: 16px;
+            pointer-events: none;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            padding: 0 4px 4px 4px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+            min-width: 600px;
+        }
+        thead {
+            background: #f8faff;
+            border-bottom: 2px solid #e6ecf5;
+        }
+        thead th {
+            padding: 14px 16px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            color: #4a5f76;
+            white-space: nowrap;
+            cursor: pointer;
+            user-select: none;
+            transition: color 0.15s ease;
+            position: relative;
+        }
+        thead th:hover {
+            color: #1b4a2e;
+        }
+        thead th .sort-arrow {
+            display: inline-block;
+            margin-left: 6px;
+            font-size: 11px;
+            color: #b0c4d8;
+            transition: color 0.2s ease;
+        }
+        thead th.sorted .sort-arrow {
+            color: #2e7d32;
+        }
+        thead th:first-child {
+            padding-left: 24px;
+        }
+        tbody tr {
+            border-bottom: 1px solid #f0f4fa;
+            transition: background 0.12s ease;
+        }
+        tbody tr:last-child {
+            border-bottom: none;
+        }
+        tbody tr:hover {
+            background: #f6faff;
+        }
+        tbody td {
+            padding: 13px 16px;
+            vertical-align: middle;
+            color: #1a2a3a;
+            font-size: 13.5px;
+        }
+        tbody td:first-child {
+            padding-left: 24px;
+            font-weight: 500;
+        }
+        .highlight-green {
+            background: #e6f5e8 !important;
+            color: #1a6b2a !important;
+            font-weight: 600;
+            border-radius: 4px;
+            padding: 4px 8px;
+            display: inline-block;
+            transition: background 0.15s ease;
+        }
+        .highlight-green:hover {
+            background: #c8e6cc !important;
+        }
+        .highlight-gold {
+            background: #fff3d6 !important;
+            color: #8a6100 !important;
+            font-weight: 600;
+            border-radius: 4px;
+            padding: 4px 8px;
+            display: inline-block;
+        }
+        .empty-state {
+            padding: 40px 24px;
+            text-align: center;
+            color: #7a8ca0;
+            font-size: 15px;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 12px;
+            }
+            .header {
+                padding: 20px 20px;
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .header h1 {
+                font-size: 20px;
+            }
+            .tabs {
+                gap: 4px;
+                padding: 4px;
+            }
+            .tab-btn {
+                min-width: 80px;
+                padding: 10px 12px;
+                font-size: 13px;
+                flex: 1 1 auto;
+            }
+            .table-toolbar {
+                padding: 14px 16px;
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .table-toolbar .search-box input {
+                width: 100%;
+            }
+            .table-toolbar .search-box input:focus {
+                width: 100%;
+            }
+            table {
+                font-size: 12.5px;
+                min-width: 480px;
+            }
+            thead th {
+                padding: 10px 10px;
+                font-size: 10.5px;
+            }
+            tbody td {
+                padding: 10px 10px;
+                font-size: 12px;
+            }
+            tbody td:first-child {
+                padding-left: 14px;
+            }
+            thead th:first-child {
+                padding-left: 14px;
+            }
+        }
+        @media (max-width: 480px) {
+            .tab-btn {
+                font-size: 12px;
+                padding: 8px 10px;
+                min-width: 60px;
+            }
+        }
+        @media print {
+            body {
+                background: #fff;
+                padding: 16px;
+            }
+            .header {
+                background: #1b4a2e !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .highlight-green,
+            .highlight-gold {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .tab-btn {
+                display: none;
+            }
+            .panel {
+                display: block !important;
+                page-break-after: always;
+            }
+            .panel:last-child {
+                page-break-after: avoid;
+            }
+            .table-toolbar .search-box {
+                display: none;
+            }
+            .insight-box {
+                border: 1px solid #ccc;
+                background: #f9f9f9 !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>📊 Indicadores do IGR e TIR</h1>
+        </header>
+
+        <div class="tabs" role="tablist">
+            <button class="tab-btn active" data-tab="igr-auto">
+                <span class="tab-icon">📋</span> IGR Autogestão
+            </button>
+            <button class="tab-btn" data-tab="igr-grande">
+                <span class="tab-icon">🏢</span> IGR Regional GO
+            </button>
+            <button class="tab-btn" data-tab="tir-maio">
+                <span class="tab-icon">📈</span> TIR Autogestão
+            </button>
+            <button class="tab-btn" data-tab="tir-grande">
+                <span class="tab-icon">📊</span> TIR Regional GO
+            </button>
+        </div>
+
+        <!-- PAINEL IGR AUTOGESTÃO -->
+        <section class="panel active" id="panel-igr-auto" role="tabpanel">
+            <div class="insight-box">
+                <strong>🏆 Melhor desempenho do grupo:</strong> SERV SOCIAL AUTÔNOMO DE ASSIST À SAÚDE DOS SERV PÚBLICOS E MILITARES DE GOIÁS com IGR de <strong>23,93</strong>.
+                O resultado é <strong>8,79 vezes</strong> melhor que o da GEAP (210,27) e <strong>88,6%</strong> menor.
+            </div>
+            <div class="table-card">
+                <div class="table-toolbar">
+                    <div class="title-group">
+                        <h2>IGR – Autogestão</h2>
+                        <span class="sub">Ref. julho/2026</span>
+                    </div>
+                    <div class="search-box">
+                        <span class="icon">🔍</span>
+                        <input type="text" placeholder="Filtrar operadora..." data-search="igr-auto" />
+                    </div>
+                </div>
+                <div class="table-wrapper">
+                    <table id="table-igr-auto">
+                        <thead>
+                            <tr>
+                                <th data-sort="operadora">Operadora <span class="sort-arrow">▾</span></th>
+                                <th data-sort="recl" class="sorted">Média Reclamações <span class="sort-arrow">▾</span></th>
+                                <th data-sort="benef">Média Beneficiários <span class="sort-arrow">▾</span></th>
+                                <th data-sort="igr">IGR <span class="sort-arrow">▾</span></th>
+                                <th data-sort="posPorte">Pos. Porte <span class="sort-arrow">▾</span></th>
+                                <th data-sort="posGeral">Pos. Geral <span class="sort-arrow">▾</span></th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-igr-auto"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAINEL IGR REGIONAL GO -->
+        <section class="panel" id="panel-igr-grande" role="tabpanel">
+            <div class="insight-box">
+                <strong>📉 Melhor IGR regional:</strong> SERV SOCIAL AUTÔNOMO DE ASSIST À SAÚDE DOS SERV PÚBLICOS E MILITARES DE GOIÁS com <strong>23,30</strong> pontos.
+                O IGR da GEAP foi <strong>10,44 vezes</strong> superior (243,18), o que equivale a <strong>90,4%</strong> menor.
+            </div>
+            <div class="table-card">
+                <div class="table-toolbar">
+                    <div class="title-group">
+                        <h2>IGR – Regional GO</h2>
+                        <span class="sub">Ref. julho/2026</span>
+                    </div>
+                    <div class="search-box">
+                        <span class="icon">🔍</span>
+                        <input type="text" placeholder="Filtrar operadora..." data-search="igr-grande" />
+                    </div>
+                </div>
+                <div class="table-wrapper">
+                    <table id="table-igr-grande">
+                        <thead>
+                            <tr>
+                                <th data-sort="operadora">Operadora <span class="sort-arrow">▾</span></th>
+                                <th data-sort="recl" class="sorted">Média Reclamações <span class="sort-arrow">▾</span></th>
+                                <th data-sort="benef">Média Beneficiários <span class="sort-arrow">▾</span></th>
+                                <th data-sort="igr">IGR <span class="sort-arrow">▾</span></th>
+                                <th data-sort="posPorte">Pos. Porte <span class="sort-arrow">▾</span></th>
+                                <th data-sort="posGeral">Pos. Geral <span class="sort-arrow">▾</span></th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-igr-grande"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAINEL TIR AUTOGESTÃO -->
+        <section class="panel" id="panel-tir-maio" role="tabpanel">
+            <div class="insight-box">
+                <strong>✅ Maior TIR do segmento:</strong> GEAP AUTOGESTÃO EM SAÚDE com <strong>87,9%</strong>,
+                posicionando-se em <strong>2º</strong> lugar entre as OPS de mesmo porte e <strong>3º</strong> geral.
+                A segunda colocada (SERV SOCIAL) alcançou 83,3%.
+            </div>
+            <div class="table-card">
+                <div class="table-toolbar">
+                    <div class="title-group">
+                        <h2>TIR – Autogestão</h2>
+                        <span class="sub">Ref. julho/2026</span>
+                    </div>
+                    <div class="search-box">
+                        <span class="icon">🔍</span>
+                        <input type="text" placeholder="Filtrar operadora..." data-search="tir-maio" />
+                    </div>
+                </div>
+                <div class="table-wrapper">
+                    <table id="table-tir-maio">
+                        <thead>
+                            <tr>
+                                <th data-sort="operadora">Operadora <span class="sort-arrow">▾</span></th>
+                                <th data-sort="numerador" class="sorted">Numerador <span class="sort-arrow">▾</span></th>
+                                <th data-sort="denominador">Denominador <span class="sort-arrow">▾</span></th>
+                                <th data-sort="tir">TIR <span class="sort-arrow">▾</span></th>
+                                <th data-sort="posPorte">Pos. Mesmo Porte <span class="sort-arrow">▾</span></th>
+                                <th data-sort="posGeral">Pos. Geral <span class="sort-arrow">▾</span></th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-tir-maio"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAINEL TIR REGIONAL GO -->
+        <section class="panel" id="panel-tir-grande" role="tabpanel">
+            <div class="insight-box">
+                <strong>📈 Destaque regional:</strong> UNIMED GOIANIA COOPERATIVA DE TRABALHO MÉDICO com TIR de <strong>83,9%</strong>,
+                ocupando a <strong>2ª</strong> posição entre operadoras de mesmo porte e <strong>3ª</strong> geral.
+                O índice supera o da SERV SOCIAL (82,7%) e da UNIMED CNU (80,6%).
+            </div>
+            <div class="table-card">
+                <div class="table-toolbar">
+                    <div class="title-group">
+                        <h2>TIR – Regional GO</h2>
+                        <span class="sub">Ref. julho/2026</span>
+                    </div>
+                    <div class="search-box">
+                        <span class="icon">🔍</span>
+                        <input type="text" placeholder="Filtrar operadora..." data-search="tir-grande" />
+                    </div>
+                </div>
+                <div class="table-wrapper">
+                    <table id="table-tir-grande">
+                        <thead>
+                            <tr>
+                                <th data-sort="operadora">Operadora <span class="sort-arrow">▾</span></th>
+                                <th data-sort="numerador" class="sorted">Numerador <span class="sort-arrow">▾</span></th>
+                                <th data-sort="denominador">Denominador <span class="sort-arrow">▾</span></th>
+                                <th data-sort="tir">TIR <span class="sort-arrow">▾</span></th>
+                                <th data-sort="posPorte">Pos. Mesmo Porte <span class="sort-arrow">▾</span></th>
+                                <th data-sort="posGeral">Pos. Geral <span class="sort-arrow">▾</span></th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-tir-grande"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <script>
+        // ──────────────────────────────────────────────
+        //  DADOS ATUALIZADOS – julho/2026
+        // ──────────────────────────────────────────────
+
+        const igrAutoData = [
+            { operadora: "GEAP AUTOGESTÃO EM SAÚDE", recl: 856, benef: 407101.0, igr: 210.27, posPorte: 1, posGeral: 2 },
+            { operadora: "CAIXA DE ASSISTÊNCIA DOS FUNCIONÁRIOS DO BANCO DO BRASIL", recl: 364, benef: 531768.0, igr: 68.45, posPorte: 4, posGeral: 14 },
+            { operadora: "CAIXA ECONÔMICA FEDERAL", recl: 304, benef: 272863.0, igr: 111.41, posPorte: 3, posGeral: 9 },
+            { operadora: "POSTAL SAÚDE CAIXA DE ASSISTÊNCIA E SAÚDE DOS EMPREGADOS DOS CORREIOS", recl: 246, benef: 181100.0, igr: 135.84, posPorte: 2, posGeral: 7 },
+            { operadora: "SERV SOCIAL AUTÔNOMO DE ASSIST À SAÚDE DOS SERV PÚBLICOS E MILITARES DE GOIÁS", recl: 135, benef: 564084.0, igr: 23.93, posPorte: 8, posGeral: 37 },
+            { operadora: "ASSOCIAÇÃO PETROBRAS DE SAÚDE - APS", recl: 88, benef: 257725.0, igr: 34.14, posPorte: 6, posGeral: 29 }
+        ];
+
+        const igrGrandeData = [
+            { operadora: "UNIMED GOIANIA COOPERATIVA DE TRABALHO MÉDICO", recl: 182, benef: 369945.0, igr: 49.20, posPorte: 17, posGeral: 25 },
+            { operadora: "SERV SOCIAL AUTÔNOMO DE ASSIST À SAÚDE DOS SERV PÚBLICOS E MILITARES DE GOIÁS", recl: 130, benef: 557899.0, igr: 23.30, posPorte: 5, posGeral: 7 },
+            { operadora: "UNIMED CNU - COOPERATIVA CENTRAL", recl: 36, benef: 87198.0, igr: 41.29, posPorte: 18, posGeral: 26 },
+            { operadora: "GEAP AUTOGESTÃO EM SAÚDE", recl: 19, benef: 7813.0, igr: 243.18, posPorte: 1, posGeral: 3 },
+            { operadora: "POSTAL SAÚDE CAIXA DE ASSISTÊNCIA E SAÚDE DOS EMPREGADOS DOS CORREIOS", recl: 7, benef: 5766.0, igr: 121.40, posPorte: 4, posGeral: 6 }
+        ];
+
+        const tirMaioData = [
+            { operadora: "GEAP AUTOGESTÃO EM SAÚDE", numerador: 702, denominador: 799, tir: 0.879, posPorte: 2, posGeral: 3 },
+            { operadora: "CAIXA DE ASSISTÊNCIA DOS FUNCIONÁRIOS DO BANCO DO BRASIL", numerador: 236, denominador: 314, tir: 0.752, posPorte: 6, posGeral: 13 },
+            { operadora: "POSTAL SAÚDE CAIXA DE ASSISTÊNCIA E SAÚDE DOS EMPREGADOS DOS CORREIOS", numerador: 124, denominador: 172, tir: 0.721, posPorte: 8, posGeral: 16 },
+            { operadora: "SERV SOCIAL AUTÔNOMO DE ASSIST À SAÚDE DOS SERV PÚBLICOS E MILITARES DE GOIÁS", numerador: 70, denominador: 84, tir: 0.833, posPorte: 3, posGeral: 6 },
+            { operadora: "ASSOCIAÇÃO PETROBRAS DE SAÚDE - APS", numerador: 68, denominador: 91, tir: 0.747, posPorte: 7, posGeral: 15 }
+        ];
+
+        const tirGrandeData = [
+            { operadora: "UNIMED GOIANIA COOPERATIVA DE TRABALHO MÉDICO", numerador: 135, denominador: 161, tir: 0.839, posPorte: 2, posGeral: 3 },
+            { operadora: "SERV SOCIAL AUTÔNOMO DE ASSIST À SAÚDE DOS SERV PÚBLICOS E MILITARES DE GOIÁS", numerador: 62, denominador: 75, tir: 0.827, posPorte: 3, posGeral: 4 },
+            { operadora: "UNIMED CNU - COOPERATIVA CENTRAL", numerador: 25, denominador: 31, tir: 0.806, posPorte: 4, posGeral: 5 },
+            { operadora: "GEAP AUTOGESTÃO EM SAÚDE", numerador: 6, denominador: 10, tir: 0.600, posPorte: 6, posGeral: 10 },
+            { operadora: "CAIXA DE ASSISTÊNCIA DOS FUNCIONÁRIOS DO BANCO DO BRASIL", numerador: 3, denominador: 5, tir: 0.600, posPorte: 6, posGeral: 10 },
+            { operadora: "POSTAL SAÚDE CAIXA DE ASSISTÊNCIA E SAÚDE DOS EMPREGADOS DOS CORREIOS", numerador: 2, denominador: 4, tir: 0.500, posPorte: 7, posGeral: 11 }
+        ];
+
+        // ──────────────────────────────────────────────
+        //  FUNÇÕES DE FORMATAÇÃO
+        // ──────────────────────────────────────────────
+
+        function fmtBenef(val) {
+            return val.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function fmtRecl(val) {
+            return Number.isInteger(val) ? val : val.toFixed(1);
+        }
+
+        function fmtTir(val) {
+            return (val * 100).toFixed(1) + '%';
+        }
+
+        // ──────────────────────────────────────────────
+        //  RENDERIZAÇÃO COM DESTAQUE AUTOMÁTICO
+        // ──────────────────────────────────────────────
+
+        function renderTable(tbodyId, data, columns, formatters = {}) {
+            const tbody = document.getElementById(tbodyId);
+            if (!tbody) return;
+            const searchInput = document.querySelector(`[data-search="${tbodyId.replace('tbody-', '')}"]`);
+            const filter = searchInput ? searchInput.value.toLowerCase().trim() : '';
+
+            let filtered = data;
+            if (filter) {
+                filtered = data.filter(row => {
+                    return Object.values(row).some(val =>
+                        String(val).toLowerCase().includes(filter)
+                    );
+                });
+            }
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="${columns.length}" class="empty-state">Nenhum registro encontrado.</td></tr>`;
+                return;
+            }
+
+            // Encontra o menor IGR e a maior TIR (para destaque)
+            let minIgr = Infinity;
+            let maxTir = -Infinity;
+            filtered.forEach(row => {
+                if (row.igr !== undefined && row.igr < minIgr) minIgr = row.igr;
+                if (row.tir !== undefined && row.tir > maxTir) maxTir = row.tir;
+            });
+
+            let html = '';
+            filtered.forEach(row => {
+                html += '<tr>';
+                columns.forEach(col => {
+                    let val = row[col];
+                    if (formatters[col]) {
+                        val = formatters[col](val);
+                    } else if (typeof val === 'number' && !Number.isInteger(val)) {
+                        val = val.toFixed(2);
+                    } else if (val === undefined || val === null) {
+                        val = '';
+                    }
+                    let classAttr = '';
+                    // Destaque verde para o menor IGR
+                    if (col === 'igr' && row.igr === minIgr) {
+                        classAttr = 'class="highlight-green"';
+                    }
+                    // Destaque dourado para a maior TIR
+                    if (col === 'tir' && row.tir === maxTir) {
+                        classAttr = 'class="highlight-gold"';
+                    }
+                    html += `<td ${classAttr}>${val}</td>`;
+                });
+                html += '</tr>';
+            });
+            tbody.innerHTML = html;
+        }
+
+        // ──────────────────────────────────────────────
+        //  INICIALIZAÇÃO
+        // ──────────────────────────────────────────────
+
+        function initAll() {
+            renderTable('tbody-igr-auto', igrAutoData,
+                ['operadora', 'recl', 'benef', 'igr', 'posPorte', 'posGeral'],
+                { recl: fmtRecl, benef: fmtBenef }
+            );
+
+            renderTable('tbody-igr-grande', igrGrandeData,
+                ['operadora', 'recl', 'benef', 'igr', 'posPorte', 'posGeral'],
+                { recl: fmtRecl, benef: fmtBenef }
+            );
+
+            renderTable('tbody-tir-maio', tirMaioData,
+                ['operadora', 'numerador', 'denominador', 'tir', 'posPorte', 'posGeral'],
+                { tir: fmtTir }
+            );
+
+            renderTable('tbody-tir-grande', tirGrandeData,
+                ['operadora', 'numerador', 'denominador', 'tir', 'posPorte', 'posGeral'],
+                { tir: fmtTir }
+            );
+
+            setupTabs();
+            setupSearch();
+            setupSort();
+        }
+
+        // ──────────────────────────────────────────────
+        //  TABS
+        // ──────────────────────────────────────────────
+
+        function setupTabs() {
+            const btns = document.querySelectorAll('.tab-btn');
+            const panels = {
+                'igr-auto': document.getElementById('panel-igr-auto'),
+                'igr-grande': document.getElementById('panel-igr-grande'),
+                'tir-maio': document.getElementById('panel-tir-maio'),
+                'tir-grande': document.getElementById('panel-tir-grande'),
+            };
+
+            btns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    btns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    const tab = btn.dataset.tab;
+                    Object.keys(panels).forEach(key => {
+                        panels[key].classList.toggle('active', key === tab);
+                    });
+                    const searchInput = document.querySelector(`[data-search="${tab}"]`);
+                    if (searchInput) {
+                        triggerSearch(tab, searchInput.value);
+                    }
+                });
+            });
+        }
+
+        // ──────────────────────────────────────────────
+        //  BUSCA
+        // ──────────────────────────────────────────────
+
+        function setupSearch() {
+            document.querySelectorAll('[data-search]').forEach(input => {
+                input.addEventListener('input', () => {
+                    const tab = input.dataset.search;
+                    triggerSearch(tab, input.value);
+                });
+            });
+        }
+
+        function triggerSearch(tab, filter) {
+            const tbodyId = `tbody-${tab}`;
+            let data, columns, formatters;
+            switch (tab) {
+                case 'igr-auto':
+                    data = igrAutoData;
+                    columns = ['operadora', 'recl', 'benef', 'igr', 'posPorte', 'posGeral'];
+                    formatters = { recl: fmtRecl, benef: fmtBenef };
+                    break;
+                case 'igr-grande':
+                    data = igrGrandeData;
+                    columns = ['operadora', 'recl', 'benef', 'igr', 'posPorte', 'posGeral'];
+                    formatters = { recl: fmtRecl, benef: fmtBenef };
+                    break;
+                case 'tir-maio':
+                    data = tirMaioData;
+                    columns = ['operadora', 'numerador', 'denominador', 'tir', 'posPorte', 'posGeral'];
+                    formatters = { tir: fmtTir };
+                    break;
+                case 'tir-grande':
+                    data = tirGrandeData;
+                    columns = ['operadora', 'numerador', 'denominador', 'tir', 'posPorte', 'posGeral'];
+                    formatters = { tir: fmtTir };
+                    break;
+                default:
+                    return;
+            }
+            // Re-renderiza com os mesmos dados e filtro
+            const tbody = document.getElementById(tbodyId);
+            if (!tbody) return;
+            const searchInput = document.querySelector(`[data-search="${tab}"]`);
+            const filterValue = searchInput ? searchInput.value.toLowerCase().trim() : '';
+            let filtered = data;
+            if (filterValue) {
+                filtered = data.filter(row => {
+                    return Object.values(row).some(val =>
+                        String(val).toLowerCase().includes(filterValue)
+                    );
+                });
+            }
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="${columns.length}" class="empty-state">Nenhum registro encontrado.</td></tr>`;
+                return;
+            }
+            // Recalcula min/max para destaque
+            let minIgr = Infinity;
+            let maxTir = -Infinity;
+            filtered.forEach(row => {
+                if (row.igr !== undefined && row.igr < minIgr) minIgr = row.igr;
+                if (row.tir !== undefined && row.tir > maxTir) maxTir = row.tir;
+            });
+            let html = '';
+            filtered.forEach(row => {
+                html += '<tr>';
+                columns.forEach(col => {
+                    let val = row[col];
+                    if (formatters && formatters[col]) {
+                        val = formatters[col](val);
+                    } else if (typeof val === 'number' && !Number.isInteger(val)) {
+                        val = val.toFixed(2);
+                    } else if (val === undefined || val === null) {
+                        val = '';
+                    }
+                    let classAttr = '';
+                    if (col === 'igr' && row.igr === minIgr) {
+                        classAttr = 'class="highlight-green"';
+                    }
+                    if (col === 'tir' && row.tir === maxTir) {
+                        classAttr = 'class="highlight-gold"';
+                    }
+                    html += `<td ${classAttr}>${val}</td>`;
+                });
+                html += '</tr>';
+            });
+            tbody.innerHTML = html;
+        }
+
+        // ──────────────────────────────────────────────
+        //  ORDENAÇÃO
+        // ──────────────────────────────────────────────
+
+        function setupSort() {
+            document.querySelectorAll('thead th[data-sort]').forEach(th => {
+                th.addEventListener('click', () => {
+                    const table = th.closest('table');
+                    const tbody = table.querySelector('tbody');
+                    const rows = Array.from(tbody.querySelectorAll('tr'));
+                    if (rows.length === 0 || rows[0].classList.contains('empty-state')) return;
+
+                    const key = th.dataset.sort;
+                    const isAsc = th.classList.contains('sorted') ? !th.dataset.asc : true;
+
+                    table.querySelectorAll('thead th').forEach(h => {
+                        if (h !== th) {
+                            h.classList.remove('sorted');
+                            delete h.dataset.asc;
+                        }
+                    });
+
+                    th.classList.add('sorted');
+                    th.dataset.asc = isAsc ? 'true' : 'false';
+
+                    const headers = Array.from(table.querySelectorAll('thead th'));
+                    const idx = headers.indexOf(th);
+
+                    const numericKeys = ['recl', 'benef', 'igr', 'posPorte', 'posGeral', 'numerador', 'denominador', 'tir'];
+                    const isNumeric = numericKeys.includes(key);
+
+                    const sortFn = (a, b) => {
+                        const cellsA = a.querySelectorAll('td');
+                        const cellsB = b.querySelectorAll('td');
+                        let va = cellsA[idx] ? cellsA[idx].textContent.trim() : '';
+                        let vb = cellsB[idx] ? cellsB[idx].textContent.trim() : '';
+                        if (isNumeric) {
+                            va = parseFloat(va.replace(/[%,.]/g, '').replace(',', '.')) || 0;
+                            vb = parseFloat(vb.replace(/[%,.]/g, '').replace(',', '.')) || 0;
+                            return isAsc ? va - vb : vb - va;
+                        }
+                        return isAsc ? va.localeCompare(vb) : vb.localeCompare(va);
+                    };
+
+                    rows.sort(sortFn);
+                    tbody.append(...rows);
+                    th.querySelector('.sort-arrow').textContent = isAsc ? '▾' : '▴';
+                });
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', initAll);
+    </script>
+</body>
+</html>
